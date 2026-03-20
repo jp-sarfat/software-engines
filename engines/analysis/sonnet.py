@@ -72,6 +72,7 @@ def run_sonnet_analysis(
     routes: dict[str, Any] | None = None,
     auth: dict[str, Any] | None = None,
     database: dict[str, Any] | None = None,
+    max_tokens: int = 4096,
 ) -> SonnetResult:
     """Run Phase 1 Sonnet analysis and return structured result."""
     prompt = build_sonnet_prompt(
@@ -89,6 +90,7 @@ def run_sonnet_analysis(
         messages=[{"role": "user", "content": prompt}],
         system=SONNET_SYSTEM_PROMPT,
         model=client.default_model,
+        max_tokens=max_tokens,
         temperature=0.3,
     )
 

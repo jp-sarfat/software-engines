@@ -45,6 +45,7 @@ def run_full_analysis(
         routes=request.routes,
         auth=request.authentication,
         database=request.database_schema,
+        max_tokens=request.max_tokens,
     )
 
     if sonnet.status == AnalysisStatus.FAILED:

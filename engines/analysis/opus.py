@@ -87,6 +87,7 @@ def run_opus_validation(
     routes: dict[str, Any] | None = None,
     auth: dict[str, Any] | None = None,
     database: dict[str, Any] | None = None,
+    max_tokens: int = 4096,
 ) -> OpusResult:
     """Run Phase 2 Opus validation and return structured result."""
     prompt = build_opus_prompt(
@@ -104,7 +105,7 @@ def run_opus_validation(
         system=OPUS_SYSTEM_PROMPT,
         model=client.advanced_model,
         temperature=0.1,
-        max_tokens=4000,
+        max_tokens=max_tokens,
     )
 
     if response.get("error"):

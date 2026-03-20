@@ -38,6 +38,7 @@ class AnalysisRequest(BaseModel):
     routes: dict[str, Any] = {}
     authentication: dict[str, Any] = {}
     database_schema: dict[str, Any] = {}
+    max_tokens: int = Field(default=4096, ge=256, le=16000)
 
 
 class SonnetResult(BaseModel):
@@ -84,3 +85,4 @@ class OpusValidationRequest(BaseModel):
     routes: dict[str, Any] = {}
     authentication: dict[str, Any] = {}
     database_schema: dict[str, Any] = {}
+    max_tokens: int = Field(default=4096, ge=256, le=16000)

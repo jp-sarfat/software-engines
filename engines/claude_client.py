@@ -116,6 +116,60 @@ class ClaudeClient:
 
         return {"error": "Max retries exceeded", "content": ""}
 
+    def stream_message(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        system: Optional[str] = None,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.7,
+    ) -> Generator[str, None, None]:
+        """Yield text chunks from a streaming Claude response."""
+        if not self.is_configured:
+            yield "Anthropic API key is missing."
+            return
+
+        model = model or self.default_model
+        max_tokens = max_tokens or self.max_tokens
+
+        payload: dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": messages,
+            "stream": True,
+        }
+        if system:
+            payload["system"] = system
+
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.api_key,
+            "anthropic-version": _ANTHROPIC_VERSION,
+        }
+
+        try:
+            with httpx.Client(timeout=180) as client:
+                with client.stream("POST", _ANTHROPIC_URL, json=payload, headers=headers) as resp:
+                    resp.raise_for_status()
+                    for line in resp.iter_lines():
+                        if line.startswith("data: "):
+                            chunk = line[6:]
+                            if chunk.strip() == "[DONE]":
+                                break
+                            try:
+                                event = json.loads(chunk)
+                                if event.get("type") == "content_block_delta":
+                                    text = event.get("delta", {}).get("text", "")
+                                    if text:
+                                        yield text
+                            except json.JSONDecodeError:
+                                continue
+        except Exception as exc:
+            logger.error("Claude streaming error: %s", exc)
+            yield f"\n[Error: {exc}]"
+
     @staticmethod
     def _parse_response(data: dict) -> dict[str, Any]:
         result: dict[str, Any] = {
