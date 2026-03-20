@@ -161,8 +161,15 @@ class ServiceRegistry:
 
     def unregister(self, name: str) -> bool:
         with self._cursor() as cur:
-            cur.execute("DELETE FROM services WHERE name=?", (name,))
-            return cur.rowcount > 0
+            cur.execute("SELECT id FROM services WHERE name=?", (name,))
+            row = cur.fetchone()
+            if not row:
+                return False
+            sid = row[0]
+            cur.execute("DELETE FROM commands WHERE service_id=?", (sid,))
+            cur.execute("DELETE FROM events WHERE service_id=?", (sid,))
+            cur.execute("DELETE FROM services WHERE id=?", (sid,))
+            return True
 
     def get_service(self, service_id: int) -> Optional[dict]:
         with self._cursor() as cur:
